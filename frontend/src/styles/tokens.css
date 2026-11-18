@@ -1,0 +1,77 @@
+/* CampusPass design tokens: every colour, radius, shadow and space comes from here. */
+:root {
+  /* Brand */
+  --cp-brand-50: #f3f0ff;
+  --cp-brand-100: #e7e0ff;
+  --cp-brand-200: #cfc2ff;
+  --cp-brand-400: #8e70ff;
+  --cp-brand-500: #6d4aff;
+  --cp-brand-600: #5a35f0;
+  --cp-brand-700: #4f2bd9;
+  --cp-brand-900: #26136e;
+  --cp-accent-500: #ff6b6b;
+  --cp-accent-400: #ff8f6b;
+  --cp-gradient: linear-gradient(135deg, #6d4aff 0%, #a64dff 45%, #ff6b6b 100%);
+  --cp-gradient-soft: linear-gradient(135deg, #f3f0ff 0%, #fff1f1 100%);
+
+  /* Semantic */
+  --cp-success-50: #eafbf1;
+  --cp-success-500: #16a34a;
+  --cp-success-700: #0f7a37;
+  --cp-warning-50: #fff7e6;
+  --cp-warning-500: #f59e0b;
+  --cp-warning-700: #b45309;
+  --cp-danger-50: #fff0f0;
+  --cp-danger-500: #e5383b;
+  --cp-danger-700: #b3191c;
+  --cp-info-50: #eaf4ff;
+  --cp-info-500: #2f80ed;
+  --cp-info-700: #1c5fb8;
+
+  /* Neutrals */
+  --cp-ink-900: #14112a;
+  --cp-ink-700: #3a3654;
+  --cp-ink-500: #6b6785;
+  --cp-ink-300: #b7b4c8;
+  --cp-line: #e7e5f0;
+  --cp-surface: #ffffff;
+  --cp-surface-muted: #f7f6fb;
+  --cp-bg: #fbfaff;
+
+  /* Typography */
+  --cp-font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --cp-font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, monospace;
+  --cp-text-xs: 0.75rem;
+  --cp-text-sm: 0.875rem;
+  --cp-text-md: 1rem;
+  --cp-text-lg: 1.125rem;
+  --cp-text-xl: 1.375rem;
+  --cp-text-2xl: 1.75rem;
+  --cp-text-3xl: 2.25rem;
+
+  /* Spacing (4px grid) */
+  --cp-space-1: 0.25rem;
+  --cp-space-2: 0.5rem;
+  --cp-space-3: 0.75rem;
+  --cp-space-4: 1rem;
+  --cp-space-5: 1.25rem;
+  --cp-space-6: 1.5rem;
+  --cp-space-8: 2rem;
+  --cp-space-10: 2.5rem;
+  --cp-space-12: 3rem;
+
+  /* Shape & depth */
+  --cp-radius-sm: 8px;
+  --cp-radius-md: 12px;
+  --cp-radius-lg: 18px;
+  --cp-radius-xl: 26px;
+  --cp-radius-full: 999px;
+  --cp-shadow-sm: 0 1px 2px rgba(20, 17, 42, 0.06);
+  --cp-shadow-md: 0 6px 20px rgba(38, 19, 110, 0.08);
+  --cp-shadow-lg: 0 18px 48px rgba(38, 19, 110, 0.16);
+  --cp-ring: 0 0 0 3px rgba(109, 74, 255, 0.35);
+
+  --cp-container: 1180px;
+  --cp-header-h: 64px;
+  --cp-transition: 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}

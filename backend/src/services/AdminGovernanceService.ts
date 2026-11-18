@@ -64,6 +64,7 @@ export class AdminGovernanceService implements IAdminGovernanceService {
         targetType: 'Event',
         targetId: event.id,
         details: {
+          title: event.title,
           from: event.status,
           to: status,
           reason: reason ?? null,
