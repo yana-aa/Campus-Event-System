@@ -8,15 +8,16 @@
  */
 import type {
   AuditLog as PrismaAuditLog,
+  Report as PrismaReport,
   Booking as PrismaBooking,
   Event as PrismaEvent,
   TicketTier as PrismaTicketTier,
   User as PrismaUser,
   Venue as PrismaVenue,
 } from '@prisma/client';
-import { BookingStatus, EventStatus, Role, UserStatus } from '@prisma/client';
+import { BookingStatus, EventStatus, ReportStatus, Role, UserStatus } from '@prisma/client';
 
-export { BookingStatus, EventStatus, Role, UserStatus };
+export { BookingStatus, EventStatus, ReportStatus, Role, UserStatus };
 
 export type User = PrismaUser;
 export type Venue = PrismaVenue;
@@ -24,6 +25,7 @@ export type Event = PrismaEvent;
 export type TicketTier = PrismaTicketTier;
 export type Booking = PrismaBooking;
 export type AuditLog = PrismaAuditLog;
+export type Report = PrismaReport;
 
 /** User without credentials - the only shape that ever leaves the API. */
 export type PublicUser = Omit<User, 'passwordHash'>;
@@ -42,7 +44,19 @@ export type BookingWithDetails = Booking & {
 };
 
 /** Audit log with `details` decoded from its JSON column. */
-export type AuditLogView = Omit<AuditLog, 'details'> & { details: unknown };
+export type AuditActor = Pick<User, 'id' | 'fullName' | 'email' | 'role'>;
+export type AuditLogWithActor = AuditLog & { actor: AuditActor | null };
+export type AuditLogView = Omit<AuditLog, 'details'> & { details: unknown; actor: AuditActor | null };
+
+export interface ClashSummary {
+  id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+}
+
+/** Event in the admin review queue, annotated with venue clashes. */
+export type EventForReview = EventWithDetails & { clashes: ClashSummary[] };
 
 /** Statuses that hold a seat (count toward capacity). */
 export const SEATED_BOOKING_STATUSES: readonly BookingStatus[] = [

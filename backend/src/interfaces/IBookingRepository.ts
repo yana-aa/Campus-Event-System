@@ -12,6 +12,13 @@ export interface CreateBookingData {
   needsAccessibility: boolean;
 }
 
+export interface MonthlyBookingCount {
+  /** YYYY-MM */
+  month: string;
+  bookings: number;
+  tickets: number;
+}
+
 export interface BookingStats {
   totalBookings: number;
   ticketsSold: number;
@@ -52,6 +59,8 @@ export interface IBookingCheckInRepository {
 export interface IBookingStatsRepository {
   getStats(eventIds?: string[]): Promise<BookingStats>;
   getStatsByEvent(eventIds: string[]): Promise<Map<string, BookingStats>>;
+  /** Non-cancelled bookings created since `since`, bucketed by UTC month. */
+  getMonthlyBookings(eventIds: string[], since: Date): Promise<MonthlyBookingCount[]>;
 }
 
 export interface IBookingRepository

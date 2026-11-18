@@ -1,4 +1,13 @@
 import type { Role, User, UserStatus } from '../models';
+import type { Paginated } from './IAuditLogRepository';
+
+export interface UserListQuery {
+  page: number;
+  pageSize: number;
+  search?: string;
+  role?: Role;
+  status?: UserStatus;
+}
 
 export interface CreateUserData {
   fullName: string;
@@ -18,4 +27,5 @@ export interface IUserRepository extends IUserReader {
   create(data: CreateUserData): Promise<User>;
   updateStatus(id: string, status: UserStatus): Promise<User>;
   countByRole(): Promise<Record<Role, number>>;
+  list(query: UserListQuery): Promise<Paginated<User>>;
 }

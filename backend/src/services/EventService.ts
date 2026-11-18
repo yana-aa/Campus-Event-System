@@ -17,7 +17,7 @@ import type {
   UpdateEventData,
   UpdateEventInput,
 } from '../interfaces';
-import { EventStatus, Role, type EventWithDetails, type Venue } from '../models';
+import { EventStatus, Role, type ClashSummary, type EventForReview, type EventWithDetails, type Venue } from '../models';
 import { dateWindow, startOfUtcDay, timeRangesOverlap, timeToMinutes, toCalendarDay } from '../utils/dates';
 
 const PUBLIC_STATUSES: EventStatus[] = [EventStatus.PUBLISHED];
@@ -62,6 +62,19 @@ export class EventService implements IEventService {
 
   async listForOrganizer(organizerId: string): Promise<EventWithDetails[]> {
     return this.events.findByOrganizer(organizerId);
+  }
+
+  async listForReview(status: EventStatus): Promise<EventForReview[]> {
+    const events = await this.events.search({ statuses: [status] });
+    return Promise.all(
+      events.map(async (event) => ({
+        ...event,
+        clashes: await this.findClashes(
+          { venueId: event.venueId, date: event.date, startTime: event.startTime, endTime: event.endTime },
+          event.id,
+        ),
+      })),
+    );
   }
 
   async create(organizerId: string, input: CreateEventInput): Promise<EventWithDetails> {
@@ -183,11 +196,15 @@ export class EventService implements IEventService {
     }
   }
 
-  private async assertNoClash(schedule: Schedule, excludeEventId?: string): Promise<void> {
+  private async findClashes(schedule: Schedule, excludeEventId?: string): Promise<ClashSummary[]> {
     const sameDay = await this.events.findActiveAtVenueOnDate(schedule.venueId, schedule.date, excludeEventId);
-    const clashes = sameDay.filter((e) =>
-      timeRangesOverlap(schedule.startTime, schedule.endTime, e.startTime, e.endTime),
-    );
+    return sameDay
+      .filter((e) => timeRangesOverlap(schedule.startTime, schedule.endTime, e.startTime, e.endTime))
+      .map((e) => ({ id: e.id, title: e.title, startTime: e.startTime, endTime: e.endTime }));
+  }
+
+  private async assertNoClash(schedule: Schedule, excludeEventId?: string): Promise<void> {
+    const clashes = await this.findClashes(schedule, excludeEventId);
     if (clashes.length > 0) throw new VenueClashError(clashes.map((e) => e.id));
   }
 }

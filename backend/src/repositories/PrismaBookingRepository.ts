@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client';
-import type { BookingStats, CreateBookingData, IBookingRepository } from '../interfaces';
+import type { BookingStats, CreateBookingData, IBookingRepository, MonthlyBookingCount } from '../interfaces';
 import type { PrismaExecutor } from '../lib/prisma';
 import {
   ACTIVE_BOOKING_STATUSES,
@@ -122,6 +122,23 @@ export class PrismaBookingRepository implements IBookingRepository {
   async getStatsByEvent(eventIds: string[]): Promise<Map<string, BookingStats>> {
     if (eventIds.length === 0) return new Map();
     return this.aggregate({ eventId: { in: eventIds } }, true);
+  }
+
+  async getMonthlyBookings(eventIds: string[], since: Date): Promise<MonthlyBookingCount[]> {
+    if (eventIds.length === 0) return [];
+    const rows = await this.db.booking.findMany({
+      where: { eventId: { in: eventIds }, createdAt: { gte: since }, status: { not: BookingStatus.CANCELLED } },
+      select: { createdAt: true, quantity: true },
+    });
+    const buckets = new Map<string, MonthlyBookingCount>();
+    for (const row of rows) {
+      const month = row.createdAt.toISOString().slice(0, 7);
+      const bucket = buckets.get(month) ?? { month, bookings: 0, tickets: 0 };
+      bucket.bookings += 1;
+      bucket.tickets += row.quantity;
+      buckets.set(month, bucket);
+    }
+    return [...buckets.values()].sort((a, b) => a.month.localeCompare(b.month));
   }
 
   private async aggregate(where: Prisma.BookingWhereInput, perEvent: boolean): Promise<Map<string, BookingStats>> {

@@ -42,7 +42,7 @@ export const config: AppConfig = Object.freeze({
   nodeEnv,
   isProduction,
   isTest: nodeEnv === 'test',
-  port: intFrom('PORT', 4000),
+  port: intFrom('PORT', 5000),
   databaseUrl: required('DATABASE_URL', 'file:./dev.db'),
   jwtSecret: required('JWT_SECRET', 'dev-only-insecure-jwt-secret-change-me'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '1d',

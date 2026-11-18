@@ -6,6 +6,7 @@ import {
   BookingController,
   EventController,
   OrganizerController,
+  ReportController,
   TicketController,
 } from './controllers';
 import type { ITicketPricingStrategy } from './interfaces';
@@ -19,6 +20,7 @@ import {
   PrismaAuditLogRepository,
   PrismaBookingRepository,
   PrismaEventRepository,
+  PrismaReportRepository,
   PrismaTransactionManager,
   PrismaUserRepository,
   PrismaVenueRepository,
@@ -30,6 +32,7 @@ import {
   BookingService,
   EventService,
   QRCodeService,
+  ReportService,
 } from './services';
 import { FreeTicketStrategy, PaidTicketStrategy, PricingStrategyResolver } from './strategies';
 
@@ -43,6 +46,7 @@ export interface AppContainer {
     tickets: TicketController;
     organizer: OrganizerController;
     admin: AdminController;
+    reports: ReportController;
   };
 }
 
@@ -68,14 +72,16 @@ export function buildContainer(
   const events = new PrismaEventRepository(prisma);
   const bookings = new PrismaBookingRepository(prisma);
   const auditLogs = new PrismaAuditLogRepository(prisma);
+  const reports = new PrismaReportRepository(prisma);
 
   // Services
   const authService = new AuthService(users, hasher, tokens);
   const eventService = new EventService(events, venues);
   const bookingService = new BookingService(tx, bookings, new PricingStrategyResolver(pricingStrategies), qrGenerator, codes);
   const qrService = new QRCodeService(qrGenerator, bookings, events);
-  const analyticsService = new AdminAnalyticsService(events, bookings, users);
-  const governanceService = new AdminGovernanceService(tx, auditLogs);
+  const analyticsService = new AdminAnalyticsService(events, bookings, users, reports);
+  const governanceService = new AdminGovernanceService(tx, auditLogs, users);
+  const reportService = new ReportService(reports, events, users);
 
   return {
     config: appConfig,
@@ -86,7 +92,8 @@ export function buildContainer(
       bookings: new BookingController(bookingService),
       tickets: new TicketController(qrService),
       organizer: new OrganizerController(analyticsService, eventService),
-      admin: new AdminController(analyticsService, governanceService),
+      admin: new AdminController(analyticsService, governanceService, eventService),
+      reports: new ReportController(reportService),
     },
   };
 }

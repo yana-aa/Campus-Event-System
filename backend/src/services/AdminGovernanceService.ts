@@ -3,8 +3,10 @@ import type {
   AuditLogQuery,
   IAdminGovernanceService,
   IAuditLogRepository,
+  IUserRepository,
   ITransactionManager,
   Paginated,
+  UserListQuery,
 } from '../interfaces';
 import {
   AuditAction,
@@ -33,6 +35,7 @@ export class AdminGovernanceService implements IAdminGovernanceService {
   constructor(
     private readonly tx: ITransactionManager,
     private readonly auditLogs: IAuditLogRepository,
+    private readonly users: IUserRepository,
   ) {}
 
   async changeEventStatus(
@@ -100,5 +103,10 @@ export class AdminGovernanceService implements IAdminGovernanceService {
   async listAuditLogs(query: AuditLogQuery): Promise<Paginated<AuditLogView>> {
     const page = await this.auditLogs.list(query);
     return { ...page, items: page.items.map(toAuditLogView) };
+  }
+
+  async listUsers(query: UserListQuery): Promise<Paginated<PublicUser>> {
+    const page = await this.users.list(query);
+    return { ...page, items: page.items.map(toPublicUser) };
   }
 }

@@ -1,4 +1,4 @@
-import type { AuditLog } from '../models';
+import type { AuditLog, AuditLogWithActor } from '../models';
 
 export interface CreateAuditLogData {
   actorId: string;
@@ -26,5 +26,5 @@ export interface Paginated<T> {
 /** Append-only by design: there is intentionally no update or delete. */
 export interface IAuditLogRepository {
   append(entry: CreateAuditLogData): Promise<AuditLog>;
-  list(query: AuditLogQuery): Promise<Paginated<AuditLog>>;
+  list(query: AuditLogQuery): Promise<Paginated<AuditLogWithActor>>;
 }

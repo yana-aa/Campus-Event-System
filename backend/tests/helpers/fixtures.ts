@@ -108,6 +108,7 @@ export function createMockContext(): MockTransactionContext {
       create: jest.fn(),
       updateStatus: jest.fn(),
       countByRole: jest.fn(),
+      list: jest.fn(),
     },
     auditLogs: {
       append: jest.fn(),

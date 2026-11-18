@@ -4,6 +4,7 @@ export * from './IEventRepository';
 export * from './ITicketTierRepository';
 export * from './IBookingRepository';
 export * from './IAuditLogRepository';
+export * from './IReportRepository';
 export * from './IQRCodeGenerator';
 export * from './ITicketPricingStrategy';
 export * from './ISecurity';

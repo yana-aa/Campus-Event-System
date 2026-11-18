@@ -9,8 +9,11 @@ export class TicketController {
   constructor(private readonly qr: IQRCodeService) {}
 
   validate = asyncHandler(async (req: Request, res: Response) => {
-    const { eventId, qrPayload } = parseOrThrow(validateTicketSchema, req.body);
-    const result = await this.qr.validateAtDoor(requireAuth(req), eventId, qrPayload);
+    const { eventId, qrPayload, bookingCode } = parseOrThrow(validateTicketSchema, req.body);
+    const actor = requireAuth(req);
+    const result = qrPayload
+      ? await this.qr.validateAtDoor(actor, eventId, qrPayload)
+      : await this.qr.validateByCode(actor, eventId, bookingCode as string);
     res.status(200).json({ valid: true, ticket: result });
   });
 }

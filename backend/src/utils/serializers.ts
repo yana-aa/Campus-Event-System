@@ -1,11 +1,11 @@
-import type { AuditLog, AuditLogView, PublicUser, User } from '../models';
+import type { AuditLog, AuditLogView, AuditLogWithActor, PublicUser, User } from '../models';
 
 export function toPublicUser(user: User): PublicUser {
   const { passwordHash: _omit, ...rest } = user;
   return rest;
 }
 
-export function toAuditLogView(log: AuditLog): AuditLogView {
+export function toAuditLogView(log: AuditLog | AuditLogWithActor): AuditLogView {
   let details: unknown = null;
   if (log.details) {
     try {
@@ -14,5 +14,5 @@ export function toAuditLogView(log: AuditLog): AuditLogView {
       details = log.details;
     }
   }
-  return { ...log, details };
+  return { ...log, details, actor: 'actor' in log ? log.actor : null };
 }

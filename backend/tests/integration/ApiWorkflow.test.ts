@@ -313,6 +313,24 @@ describe('CampusPass API workflow (Supertest, SQLite test DB)', () => {
       expect(res.body.error.code).toBe('TICKET_ALREADY_USED');
       expect(res.body.error.details.checkedInAt).toEqual(expect.any(String));
     });
+
+    it('checks in by manually typed booking code and rejects a repeat', async () => {
+      const mine = await request(app).get('/api/bookings/me').set(auth(student2Token));
+      const code = mine.body.bookings.find((b: { status: string }) => b.status === 'CONFIRMED').bookingCode as string;
+
+      const bad = await request(app).post('/api/tickets/validate').set(auth(organizerToken)).send({ eventId, bookingCode: 'nope' });
+      expect(bad.status).toBe(400);
+
+      const ok = await request(app)
+        .post('/api/tickets/validate')
+        .set(auth(organizerToken))
+        .send({ eventId, bookingCode: code.toLowerCase() });
+      expect(ok.status).toBe(200);
+      expect(ok.body.ticket.bookingCode).toBe(code);
+
+      const again = await request(app).post('/api/tickets/validate').set(auth(organizerToken)).send({ eventId, bookingCode: code });
+      expect(again.status).toBe(409);
+    });
   });
 
   // ---------------------------------------------------------------- governance
@@ -325,11 +343,14 @@ describe('CampusPass API workflow (Supertest, SQLite test DB)', () => {
         totalEvents: 1,
         totalBookings: 2,
         ticketsSold: 2,
-        checkedInTickets: 1,
-        checkInRatePercent: 50,
+        checkedInTickets: 2,
+        checkInRatePercent: 100,
         revenueKes: 2000,
+        upcomingEvents: 1,
       });
       expect(res.body.events[0]).toMatchObject({ eventId, occupancyPercent: 1 });
+      expect(res.body.monthlyBookings).toHaveLength(6);
+      expect(res.body.monthlyBookings[5]).toMatchObject({ month: new Date().toISOString().slice(0, 7), bookings: 2 });
     });
 
     it('reports the admin overview', async () => {
@@ -338,6 +359,75 @@ describe('CampusPass API workflow (Supertest, SQLite test DB)', () => {
       expect(res.body.kpis.revenueKes).toBe(2000);
       expect(res.body.usersByRole).toEqual({ STUDENT: 2, ORGANIZER: 1, ADMIN: 1 });
       expect(res.body.eventsByStatus.PUBLISHED).toBe(1);
+      expect(res.body.openReports).toBe(0);
+    });
+
+    it('accepts user reports and counts them as open in the overview', async () => {
+      const res = await request(app)
+        .post('/api/reports')
+        .set(auth(studentToken))
+        .send({ targetType: 'EVENT', targetId: eventId, reason: 'Tickets are being resold above face value.' });
+      expect(res.status).toBe(201);
+      expect(res.body.report.status).toBe('OPEN');
+
+      const overview = await request(app).get('/api/admin/overview').set(auth(adminToken));
+      expect(overview.body.openReports).toBe(1);
+    });
+
+    it('lists the approval queue with venue clash warnings', async () => {
+      const create = (title: string, startTime: string, endTime: string) =>
+        request(app)
+          .post('/api/events')
+          .set(auth(organizerToken))
+          .send({
+            venueId: smallVenueId,
+            title,
+            category: 'Workshop',
+            audience: 'Beginners',
+            description: 'A hands-on workshop for beginners.',
+            date: isoDay(10),
+            startTime,
+            endTime,
+            maxCapacity: 100,
+            tiers: [{ name: 'Free', priceKes: 0, totalQuantity: 100 }],
+          });
+      const first = await create('Intro to Flutter Bootcamp', '14:00', '17:00');
+      expect(first.status).toBe(201);
+      // Pending events do block each other at creation, so make the clash via an edit-free path:
+      // insert an overlapping pending event directly, as a legacy/imported record would be.
+      const clash = await prisma.event.create({
+        data: {
+          organizerId: first.body.event.organizerId,
+          venueId: smallVenueId,
+          title: 'Mobile Dev Meetup',
+          category: 'Technology',
+          audience: 'All students',
+          description: 'Lightning talks.',
+          date: new Date(`${isoDay(10)}T00:00:00.000Z`),
+          startTime: '16:00',
+          endTime: '18:00',
+          maxCapacity: 50,
+          status: 'PENDING_APPROVAL',
+        },
+      });
+
+      const res = await request(app).get('/api/admin/events').query({ status: 'PENDING_APPROVAL' }).set(auth(adminToken));
+      expect(res.status).toBe(200);
+      const flutter = res.body.events.find((e: { id: string }) => e.id === first.body.event.id);
+      expect(flutter.clashes).toEqual([expect.objectContaining({ id: clash.id, title: 'Mobile Dev Meetup' })]);
+    });
+
+    it('lists and searches users for the admin user table', async () => {
+      const all = await request(app).get('/api/admin/users').set(auth(adminToken));
+      expect(all.status).toBe(200);
+      expect(all.body.total).toBe(4);
+      expect(all.body.items[0]).not.toHaveProperty('passwordHash');
+
+      const search = await request(app).get('/api/admin/users').query({ search: 'amani' }).set(auth(adminToken));
+      expect(search.body.items.map((u: { email: string }) => u.email)).toEqual(['amani.w@students.ac.ke']);
+
+      const organizers = await request(app).get('/api/admin/users').query({ role: 'ORGANIZER' }).set(auth(adminToken));
+      expect(organizers.body.total).toBe(1);
     });
 
     it('suspends a user, which blocks login and existing tokens', async () => {
@@ -365,6 +455,7 @@ describe('CampusPass API workflow (Supertest, SQLite test DB)', () => {
       expect(actions).toEqual(expect.arrayContaining(['EVENT_STATUS_CHANGED', 'USER_STATUS_CHANGED']));
 
       const approval = res.body.items.find((i: { action: string }) => i.action === 'EVENT_STATUS_CHANGED');
+      expect(approval.actor).toMatchObject({ fullName: 'N. Otieno', role: 'ADMIN' });
       expect(approval).toMatchObject({
         targetType: 'Event',
         targetId: eventId,

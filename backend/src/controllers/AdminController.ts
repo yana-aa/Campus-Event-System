@@ -1,15 +1,34 @@
 import type { Request, Response } from 'express';
-import type { IAdminAnalyticsService, IAdminGovernanceService } from '../interfaces';
+import type { IAdminAnalyticsService, IAdminGovernanceService, IEventService } from '../interfaces';
 import { requireAuth } from '../middlewares/authenticate';
 import { asyncHandler } from '../utils/asyncHandler';
 import { parseOrThrow } from '../utils/validation';
-import { auditLogQuerySchema, eventStatusSchema, idParamSchema, userStatusSchema } from '../validators';
+import {
+  adminEventQuerySchema,
+  auditLogQuerySchema,
+  eventStatusSchema,
+  idParamSchema,
+  userListQuerySchema,
+  userStatusSchema,
+} from '../validators';
 
 export class AdminController {
   constructor(
     private readonly analytics: IAdminAnalyticsService,
     private readonly governance: IAdminGovernanceService,
+    private readonly events: IEventService,
   ) {}
+
+  reviewQueue = asyncHandler(async (req: Request, res: Response) => {
+    const { status } = parseOrThrow(adminEventQuerySchema, req.query);
+    const events = await this.events.listForReview(status);
+    res.status(200).json({ count: events.length, events });
+  });
+
+  users = asyncHandler(async (req: Request, res: Response) => {
+    const query = parseOrThrow(userListQuerySchema, req.query);
+    res.status(200).json(await this.governance.listUsers(query));
+  });
 
   overview = asyncHandler(async (_req: Request, res: Response) => {
     res.status(200).json(await this.analytics.getAdminOverview());

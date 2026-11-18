@@ -5,6 +5,7 @@ import { authRoutes } from './auth.routes';
 import { bookingRoutes } from './booking.routes';
 import { eventRoutes, venueRoutes } from './event.routes';
 import { organizerRoutes } from './organizer.routes';
+import { reportRoutes } from './report.routes';
 import { ticketRoutes } from './ticket.routes';
 
 export function createApiRouter(container: AppContainer, authLimiter: RequestHandler): Router {
@@ -17,5 +18,6 @@ export function createApiRouter(container: AppContainer, authLimiter: RequestHan
   router.use('/tickets', ticketRoutes(controllers.tickets, authMiddleware));
   router.use('/organizer', organizerRoutes(controllers.organizer, authMiddleware));
   router.use('/admin', adminRoutes(controllers.admin, authMiddleware));
+  router.use('/reports', reportRoutes(controllers.reports, authMiddleware));
   return router;
 }

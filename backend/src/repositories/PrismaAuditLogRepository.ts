@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import type { AuditLogQuery, CreateAuditLogData, IAuditLogRepository, Paginated } from '../interfaces';
 import type { PrismaExecutor } from '../lib/prisma';
-import type { AuditLog } from '../models';
+import type { AuditLog, AuditLogWithActor } from '../models';
 
 export class PrismaAuditLogRepository implements IAuditLogRepository {
   constructor(private readonly db: PrismaExecutor) {}
@@ -18,7 +18,7 @@ export class PrismaAuditLogRepository implements IAuditLogRepository {
     });
   }
 
-  async list(query: AuditLogQuery): Promise<Paginated<AuditLog>> {
+  async list(query: AuditLogQuery): Promise<Paginated<AuditLogWithActor>> {
     const where: Prisma.AuditLogWhereInput = {
       ...(query.action ? { action: query.action } : {}),
       ...(query.actorId ? { actorId: query.actorId } : {}),
@@ -30,6 +30,7 @@ export class PrismaAuditLogRepository implements IAuditLogRepository {
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         skip: (query.page - 1) * query.pageSize,
         take: query.pageSize,
+        include: { actor: { select: { id: true, fullName: true, email: true, role: true } } },
       }),
       this.db.auditLog.count({ where }),
     ]);

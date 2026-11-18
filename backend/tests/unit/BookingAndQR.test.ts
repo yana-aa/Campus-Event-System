@@ -382,6 +382,26 @@ describe('QRCodeService.validateAtDoor', () => {
     await expect(service.validateAtDoor(organizer, 'event-1', payload)).rejects.toThrow('not confirmed');
   });
 
+  it('supports manual booking-code entry with the same duplicate protection', async () => {
+    const booking = makeBooking({ qrPayload: payload });
+    bookings.findByCode.mockResolvedValue(booking);
+    bookings.markCheckedIn.mockResolvedValue({ ...booking, status: BookingStatus.CHECKED_IN, checkedInAt: now });
+
+    const result = await service.validateByCode(organizer, 'event-1', 'cp-8h2k-4471');
+    expect(bookings.findByCode).toHaveBeenCalledWith('CP-8H2K-4471');
+    expect(result.status).toBe('CHECKED_IN');
+
+    bookings.findByCode.mockResolvedValue({ ...booking, status: BookingStatus.CHECKED_IN, checkedInAt: now });
+    await expect(service.validateByCode(organizer, 'event-1', 'CP-8H2K-4471')).rejects.toBeInstanceOf(
+      TicketAlreadyUsedError,
+    );
+
+    bookings.findByCode.mockResolvedValue(null);
+    await expect(service.validateByCode(organizer, 'event-1', 'CP-NONE-0000')).rejects.toBeInstanceOf(
+      InvalidTicketError,
+    );
+  });
+
   it('only lets the owning organizer (or an admin) scan tickets', async () => {
     await expect(
       service.validateAtDoor({ userId: 'other-organizer', role: Role.ORGANIZER }, 'event-1', payload),

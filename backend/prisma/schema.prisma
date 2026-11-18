@@ -29,6 +29,11 @@ enum EventStatus {
   CANCELLED
 }
 
+enum ReportStatus {
+  OPEN
+  RESOLVED
+}
+
 enum BookingStatus {
   CONFIRMED
   WAITLISTED
@@ -49,6 +54,7 @@ model User {
   organizedEvents Event[]    @relation("OrganizerEvents")
   bookings        Booking[]
   auditLogs       AuditLog[]
+  reports         Report[]
 
   @@index([role])
   @@index([status])
@@ -151,4 +157,20 @@ model AuditLog {
   @@index([actorId])
   @@index([action])
   @@index([createdAt])
+}
+
+/// A user-submitted report about an event or another user, reviewed by admins.
+model Report {
+  id         String       @id @default(uuid())
+  reporterId String
+  targetType String
+  targetId   String
+  reason     String
+  status     ReportStatus @default(OPEN)
+  createdAt  DateTime     @default(now())
+
+  reporter User @relation(fields: [reporterId], references: [id])
+
+  @@index([status])
+  @@index([targetType, targetId])
 }
