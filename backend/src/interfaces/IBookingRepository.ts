@@ -32,6 +32,8 @@ export interface IBookingCommandRepository {
   findWaitlistedByTier(tierId: string): Promise<Booking[]>;
   cancel(id: string): Promise<Booking>;
   promoteFromWaitlist(id: string, qrPayload: string): Promise<Booking>;
+  /** Cancels every non-terminal booking of an event; returns how many changed. */
+  cancelActiveForEvent(eventId: string): Promise<number>;
 }
 
 /** Read models for the student's "My tickets" view. */

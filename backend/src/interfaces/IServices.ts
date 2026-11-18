@@ -1,5 +1,5 @@
 import type {
-  AuditLog,
+  AuditLogView,
   Booking,
   BookingStats,
   BookingWithDetails,
@@ -63,6 +63,7 @@ export type UpdateEventInput = Partial<Omit<CreateEventInput, 'tiers'>>;
 export interface IEventService {
   listPublished(query: EventListQuery, now?: Date): Promise<EventWithDetails[]>;
   getById(eventId: string, viewer?: TokenPayload): Promise<EventWithDetails>;
+  listForOrganizer(organizerId: string): Promise<EventWithDetails[]>;
   create(organizerId: string, input: CreateEventInput): Promise<EventWithDetails>;
   update(actor: TokenPayload, eventId: string, input: UpdateEventInput): Promise<EventWithDetails>;
 }
@@ -136,5 +137,5 @@ export interface IAdminAnalyticsService {
 export interface IAdminGovernanceService {
   changeEventStatus(adminId: string, eventId: string, status: EventStatus, reason?: string): Promise<EventWithDetails>;
   changeUserStatus(adminId: string, userId: string, status: UserStatus, reason?: string): Promise<PublicUser>;
-  listAuditLogs(query: AuditLogQuery): Promise<Paginated<AuditLog>>;
+  listAuditLogs(query: AuditLogQuery): Promise<Paginated<AuditLogView>>;
 }

@@ -1,5 +1,5 @@
 export type {
-  AuditLog,
+  AuditLogView,
   Booking,
   BookingWithDetails,
   EventWithDetails,

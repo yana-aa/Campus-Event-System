@@ -41,6 +41,9 @@ export type BookingWithDetails = Booking & {
   tier: Pick<TicketTier, 'id' | 'name' | 'priceKes'>;
 };
 
+/** Audit log with `details` decoded from its JSON column. */
+export type AuditLogView = Omit<AuditLog, 'details'> & { details: unknown };
+
 /** Statuses that hold a seat (count toward capacity). */
 export const SEATED_BOOKING_STATUSES: readonly BookingStatus[] = [
   BookingStatus.CONFIRMED,
