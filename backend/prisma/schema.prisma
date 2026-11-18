@@ -1,0 +1,154 @@
+// CampusPass - Student Event Ticketing System
+// Prisma >= 6.2 is required for native enum support on SQLite.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ORGANIZER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum EventStatus {
+  DRAFT
+  PENDING_APPROVAL
+  PUBLISHED
+  COMPLETED
+  CANCELLED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  WAITLISTED
+  PAYMENT_DUE
+  CANCELLED
+  CHECKED_IN
+}
+
+model User {
+  id           String     @id @default(uuid())
+  fullName     String
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(STUDENT)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+
+  organizedEvents Event[]    @relation("OrganizerEvents")
+  bookings        Booking[]
+  auditLogs       AuditLog[]
+
+  @@index([role])
+  @@index([status])
+}
+
+model Venue {
+  id           String  @id @default(uuid())
+  name         String  @unique
+  maxCapacity  Int
+  isAccessible Boolean @default(false)
+
+  events Event[]
+}
+
+model Event {
+  id            String      @id @default(uuid())
+  organizerId   String
+  venueId       String
+  title         String
+  category      String
+  audience      String
+  description   String
+  /// Calendar day of the event (stored at 00:00:00 UTC)
+  date          DateTime
+  /// 24h "HH:mm"
+  startTime     String
+  /// 24h "HH:mm"
+  endTime       String
+  maxCapacity   Int
+  status        EventStatus @default(PENDING_APPROVAL)
+  coverImageUrl String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  organizer User         @relation("OrganizerEvents", fields: [organizerId], references: [id])
+  venue     Venue        @relation(fields: [venueId], references: [id])
+  tiers     TicketTier[]
+  bookings  Booking[]
+
+  @@index([status, date])
+  @@index([venueId, date])
+  @@index([organizerId])
+  @@index([category])
+}
+
+model TicketTier {
+  id            String  @id @default(uuid())
+  eventId       String
+  name          String
+  description   String?
+  /// Whole Kenyan Shillings (no fractional cents)
+  priceKes      Int     @default(0)
+  totalQuantity Int
+  soldQuantity  Int     @default(0)
+
+  event    Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@unique([eventId, name])
+  @@index([eventId])
+}
+
+model Booking {
+  id                 String        @id @default(uuid())
+  bookingCode        String        @unique
+  userId             String
+  eventId            String
+  tierId             String
+  quantity           Int
+  totalAmountKes     Int
+  qrPayload          String?       @unique
+  status             BookingStatus
+  needsAccessibility Boolean       @default(false)
+  checkedInAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id])
+  event Event      @relation(fields: [eventId], references: [id])
+  tier  TicketTier @relation(fields: [tierId], references: [id])
+
+  @@index([userId, eventId])
+  @@index([eventId, status])
+  @@index([tierId, status, createdAt])
+}
+
+/// Append-only. The application exposes no update/delete path for this table.
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String
+  action     String
+  targetType String
+  targetId   String
+  /// JSON-encoded details
+  details    String?
+  createdAt  DateTime @default(now())
+
+  actor User @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+}
