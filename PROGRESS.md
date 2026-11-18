@@ -1,13 +1,14 @@
-# CampusPass backend - progress
+# CampusPass - progress
 
 ## Done
-- [x] Stage 1: package.json, tsconfigs, jest config, .env.example, Prisma schema (Prisma 6.19.3, SQLite enums), seed, models, errors, config, interfaces, lib adapters (HMAC QR, bcrypt, JWT, booking codes)
-- [x] Stage 2: Prisma repositories + transaction manager, Free/Paid pricing strategies + resolver, Auth/Event/Booking/QRCode/AdminAnalytics/AdminGovernance services
-- [x] Stage 3: middlewares (authenticate/optionalAuth, authorizeRoles, errorHandler), zod validators, controllers, routes, container.ts (composition root), app.ts (createApp), server.ts
-- [x] Stage 4: unit tests (34, fully mocked) + Supertest integration workflow (23) on isolated prisma/test.db, GitHub Actions CI (Node 20/22), README with setup + SOLID table
+- [x] Backend stage 1-4: schema, seed, interfaces, repositories, strategies, services, HTTP layer, tests, CI, README
+- [x] Backend additions for the web client: manual booking-code check-in, monthly KPIs + upcoming events, admin approval queue with venue clashes, admin user search, reports, audit actor names, richer seed, default port 5000
+- [x] Frontend: design system, auth + role routing, discovery, event details, booking + confirmation, My tickets, organizer dashboard, create-event wizard, door check-in, admin governance console
+- [x] Frontend Vitest + RTL smoke suite, CI builds/tests both apps, frontend README
 
-Status: `npm ci && npx prisma generate && npm run build && npm test` all green (57/57).
+Status: backend 62/62 tests, frontend 19/19 tests, both builds green. Walked through every screen in a browser against the seeded API.
 
 ## Next (optional ideas)
-- [ ] Payment gateway (M-Pesa) flow using the PAYMENT_DUE status
-- [ ] Rendered QR images (PNG/SVG) endpoint for bookings
+- [ ] Payment gateway (M-Pesa) using the PAYMENT_DUE status
+- [ ] Server-side club follows and notifications
+- [ ] Admin report triage screen (resolve OPEN reports)

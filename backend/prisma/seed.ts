@@ -106,7 +106,6 @@ async function main(): Promise<void> {
       endTime: '18:00',
       maxCapacity: 200,
       status: EventStatus.PUBLISHED,
-      coverImageUrl: 'https://images.campuspass.example/hackathon-2026.jpg',
       // Sold counts include walk-up/offline sales so the demo shows 142 / 200 seats booked.
       tiers: {
         create: [
@@ -319,7 +318,12 @@ async function main(): Promise<void> {
       action: 'EVENT_STATUS_CHANGED',
       targetType: 'Event',
       targetId: hackathon.id,
-      details: JSON.stringify({ from: EventStatus.PENDING_APPROVAL, to: EventStatus.PUBLISHED, reason: 'Seed data' }),
+      details: JSON.stringify({
+        title: hackathon.title,
+        from: EventStatus.PENDING_APPROVAL,
+        to: EventStatus.PUBLISHED,
+        reason: 'Meets campus event guidelines',
+      }),
     },
   });
 

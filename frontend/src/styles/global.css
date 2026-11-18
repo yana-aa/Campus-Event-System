@@ -246,7 +246,7 @@ hr.divider {
   text-decoration: none;
 }
 
-.topbar__menu-btn {
+.topbar .topbar__menu-btn {
   display: none;
   margin-left: auto;
 }
@@ -1658,36 +1658,43 @@ a.btn.btn--sm {
 }
 
 .event-cover {
+  --cover-fallback: var(--cp-gradient);
   position: relative;
   display: grid;
   place-items: center;
-  background: var(--cp-gradient);
+  background: var(--cover-fallback);
   background-size: cover;
   background-position: center;
 }
 
 .event-cover--workshop {
-  background-image: linear-gradient(135deg, #2f80ed, #6d4aff);
+  --cover-fallback: linear-gradient(135deg, #2f80ed, #6d4aff);
+  background-image: var(--cover-fallback);
 }
 
 .event-cover--music {
-  background-image: linear-gradient(135deg, #ff6b6b, #f59e0b);
+  --cover-fallback: linear-gradient(135deg, #ff6b6b, #f59e0b);
+  background-image: var(--cover-fallback);
 }
 
 .event-cover--sports {
-  background-image: linear-gradient(135deg, #16a34a, #2f80ed);
+  --cover-fallback: linear-gradient(135deg, #16a34a, #2f80ed);
+  background-image: var(--cover-fallback);
 }
 
 .event-cover--career {
-  background-image: linear-gradient(135deg, #26136e, #2f80ed);
+  --cover-fallback: linear-gradient(135deg, #26136e, #2f80ed);
+  background-image: var(--cover-fallback);
 }
 
 .event-cover--culture {
-  background-image: linear-gradient(135deg, #a64dff, #ff6b6b);
+  --cover-fallback: linear-gradient(135deg, #a64dff, #ff6b6b);
+  background-image: var(--cover-fallback);
 }
 
 .event-cover--wellness {
-  background-image: linear-gradient(135deg, #16a34a, #a3e635);
+  --cover-fallback: linear-gradient(135deg, #16a34a, #a3e635);
+  background-image: var(--cover-fallback);
 }
 
 .event-cover__glyph {
@@ -2747,7 +2754,7 @@ a.btn.btn--sm {
 }
 
 @media (max-width: 860px) {
-  .topbar__menu-btn {
+  .topbar .topbar__menu-btn {
     display: inline-grid;
   }
 
@@ -2861,4 +2868,9 @@ a.btn.btn--sm {
   .manual-entry .btn {
     margin-top: 0;
   }
+}
+
+/* The hero has a title over the cover, so the decorative glyph is hidden there. */
+.event-hero__cover .event-cover__glyph {
+  display: none;
 }

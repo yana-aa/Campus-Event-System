@@ -10,7 +10,7 @@ export function EventCover({ event, className }: { event: Pick<CampusEvent, 'cov
       className={['event-cover', `event-cover--${event.category.toLowerCase().replace(/[^a-z]/g, '')}`, className]
         .filter(Boolean)
         .join(' ')}
-      style={event.coverImageUrl ? { backgroundImage: `url("${event.coverImageUrl}")` } : undefined}
+      style={event.coverImageUrl ? { backgroundImage: `url("${event.coverImageUrl.replace(/"/g, '%22')}"), var(--cover-fallback)` } : undefined}
       role="img"
       aria-label={event.coverImageUrl ? `Cover image for ${event.title}` : `${event.category} event`}
     >

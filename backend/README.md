@@ -35,11 +35,15 @@ governance with an append-only audit log.
    | N. Otieno | `n.otieno@campus.ac.ke` | ADMIN |
 
    Venues: *Innovation Lab, Block B* (200, accessible) and *Lab 4, Science Block* (120).
-   Events: *Nairobi Tech Hackathon 2026* (published; Regular KES 500, VIP KES 1500) and
-   *Intro to Flutter Bootcamp* (pending approval; Free).
+   Events: *Nairobi Tech Hackathon 2026* (published; Regular KES 500, VIP KES 1500, Volunteer sold out;
+   142 / 200 seats booked) and *Intro to Flutter Bootcamp* (pending approval; Free), plus a clashing pending
+   *Mobile Dev Meetup*, a sold-out *Campus Jazz Night*, a free *Git & GitHub Crash Course* and a completed
+   *Cyber Security Awareness Talk*. Event dates are relative to the day you seed. Other seeded data: a second
+   student, a suspended student, waitlisted and checked-in tickets for Amani, and two open reports.
+   The web client in `../frontend` talks to this API on port 5000.
 5. **Run it**
    ```bash
-   npm run dev          # ts-node, http://localhost:4000
+   npm run dev          # ts-node, http://localhost:5000
    npm run build && npm start
    npm test             # unit + integration (uses an isolated prisma/test.db)
    ```
@@ -117,13 +121,16 @@ src/
 | POST | `/api/bookings` | STUDENT | `{ eventId, tierId, quantity, needsAccessibility? }` → 201 confirmed / 202 waitlisted |
 | GET | `/api/bookings/me` | any | My bookings, with QR payloads |
 | DELETE | `/api/bookings/:id` | owner, ADMIN | Cancel and promote the waitlist |
-| POST | `/api/tickets/validate` | ORGANIZER (owner), ADMIN | `{ eventId, qrPayload }` → check-in, or 409 on duplicate |
-| GET | `/api/organizer/dashboard` | ORGANIZER | KPIs: bookings, tickets sold, check-in rate %, revenue in KES, per-event breakdown |
+| POST | `/api/tickets/validate` | ORGANIZER (owner), ADMIN | `{ eventId, qrPayload }` or `{ eventId, bookingCode }` → check-in, or 409 on duplicate |
+| POST | `/api/reports` | any | `{ targetType: EVENT\|USER, targetId, reason }` flags something for admin review |
+| GET | `/api/organizer/dashboard` | ORGANIZER | KPIs: bookings, upcoming events, check-in rate %, revenue in KES, per-event breakdown, last 6 months of bookings |
 | GET | `/api/organizer/events` | ORGANIZER | My events, any status |
-| GET | `/api/admin/overview` | ADMIN | Platform KPIs, users by role, events by status |
+| GET | `/api/admin/overview` | ADMIN | Platform KPIs, users by role, events by status, open reports |
+| GET | `/api/admin/events` | ADMIN | Query: `status` (default `PENDING_APPROVAL`). Approval queue; each event lists its venue `clashes` |
+| GET | `/api/admin/users` | ADMIN | Query: `search`, `role`, `status`, `page`, `pageSize` |
 | PATCH | `/api/admin/events/:id/status` | ADMIN | `{ status, reason? }`: approve, reject (back to `DRAFT`), cancel, complete |
 | PATCH | `/api/admin/users/:id/status` | ADMIN | `{ status: ACTIVE\|SUSPENDED, reason? }` |
-| GET | `/api/admin/audit-logs` | ADMIN | Query: `page`, `pageSize`, `action`, `actorId`, `targetType` |
+| GET | `/api/admin/audit-logs` | ADMIN | Query: `page`, `pageSize`, `action`, `actorId`, `targetType`. Each entry includes its `actor` |
 | GET | `/health` | public | Liveness probe |
 
 Errors always use the shape `{ "error": { "code": "TICKET_ALREADY_USED", "message": "...", "details": { ... } } }`.

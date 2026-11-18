@@ -15,10 +15,12 @@ export const MANUAL_CODE_PATTERN = /^CP-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
 /** Normalise free typing into CP-XXXX-XXXX as the organizer types. */
 export function formatBookingCodeInput(raw: string): string {
   const chars = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const body = chars.startsWith('CP') ? chars.slice(2) : chars;
+  // Let the prefix be typed (or deleted) one character at a time.
+  if (chars === '' || chars === 'C' || chars === 'CP') return chars;
+  const body = (chars.startsWith('CP') ? chars.slice(2) : chars).slice(0, 8);
   const a = body.slice(0, 4);
-  const b = body.slice(4, 8);
-  return ['CP', a, b].filter((part, i) => i === 0 || part).join('-');
+  const b = body.slice(4);
+  return b ? `CP-${a}-${b}` : `CP-${a}`;
 }
 
 export type CheckInOutcome =
