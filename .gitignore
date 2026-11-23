@@ -1,3 +1,17 @@
+# ---------------------------------------------------------------
+# CampusPass (Node.js / TypeScript: backend + frontend)
+# ---------------------------------------------------------------
+node_modules/
+dist/
+coverage/
+.env
+.env.local
+*.db
+*.db-journal
+
+# ---------------------------------------------------------------
+# Python template from the repository's initial commit
+# ---------------------------------------------------------------
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -216,3 +230,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---------------------------------------------------------------
+# Overrides: the Python template's `lib/` rule above would hide the
+# TypeScript source folders below, so they are re-included explicitly.
+# ---------------------------------------------------------------
+!backend/src/lib/
+!frontend/src/lib/
